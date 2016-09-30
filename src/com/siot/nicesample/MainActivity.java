@@ -1,10 +1,13 @@
 package com.siot.nicesample;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
@@ -17,7 +20,7 @@ public class MainActivity extends Activity {
 	private NiceWebViewClient niceClient;
 	private final String APP_SCHEME = "iamportnice://";
 	
-    @Override
+    @SuppressLint("NewApi") @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -28,6 +31,13 @@ public class MainActivity extends Activity {
         mainWebView.setWebViewClient(niceClient);
         WebSettings settings = mainWebView.getSettings();
         settings.setJavaScriptEnabled(true);
+        
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        	settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
+        	CookieManager cookieManager = CookieManager.getInstance();
+            cookieManager.setAcceptCookie(true);
+            cookieManager.setAcceptThirdPartyCookies(mainWebView, true);
+        }
         
         Intent intent = getIntent();
         Uri intentData = intent.getData();
