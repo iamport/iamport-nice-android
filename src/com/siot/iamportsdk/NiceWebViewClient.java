@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.List;
+import java.net.URLDecoder;
 
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -23,10 +24,10 @@ public class NiceWebViewClient extends WebViewClient {
 	private Activity activity;
 	private WebView target;
 	private String BANK_TID = "";
+	private String NICE_BANK_URL = "https://web.nicepay.co.kr/smart/bank/payTrans.jsp";    // 계좌이체 거래 요청 URL(V2부터는 가변적일 수 있음)
 	
 	final int RESCODE = 1;
 	final String NICE_URL = "https://web.nicepay.co.kr/smart/interfaceURL.jsp";			// NICEPAY SMART 요청 URL
-	final String NICE_BANK_URL = "https://web.nicepay.co.kr/smart/bank/payTrans.jsp";	// 계좌이체 거래 요청 URL
 	final String KTFC_PACKAGE = "com.kftc.bankpay.android";
 	
 	public NiceWebViewClient(Activity activity, WebView target) {
@@ -50,6 +51,9 @@ public class NiceWebViewClient extends WebViewClient {
 				if ( url.startsWith(PaymentScheme.BANKPAY) ) {
 					try {
 						String reqParam = makeBankPayData(url);
+
+						// IMP.request_pay(param) 호출 시 param.niceMobileV2 : true인 경우에는 makeBankPayData(url) 대신 makeBankPayDataV2(url); 을 호출해주세요
+                        // String reqParam = makeBankPayDataV2(url);
 						
 						intent = new Intent(Intent.ACTION_MAIN);
 	                    intent.setComponent(new ComponentName("com.kftc.bankpay.android","com.kftc.bankpay.android.activity.MainActivity"));
@@ -134,5 +138,15 @@ public class NiceWebViewClient extends WebViewClient {
 		
     	return ret_data.toString();
 	}
+
+	private String makeBankPayDataV2(String url) throws URISyntaxException, UnsupportedEncodingException {
+        String prefix = PaymentScheme.BANKPAY + "://eftpay?";
+
+        Uri uri = Uri.parse(url);
+        BANK_TID = uri.getQueryParameter("user_key");
+        NICE_BANK_URL = uri.getQueryParameter("callbackparam1");
+
+        return URLDecoder.decode( url.substring( prefix.length() ), "utf-8" );
+    }
 	
 }
